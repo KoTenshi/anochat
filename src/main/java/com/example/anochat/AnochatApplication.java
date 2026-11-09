@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class AnochatApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(AnochatApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(AnochatApplication.class, args);
+    }
 
 }

@@ -2,16 +2,25 @@ package com.example.anochat.message;
 
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 @RestController
 @RequestMapping("/api/messages")
 
 public class MessageController {
-    private final List<Message> messages = new CopyOnWriteArrayList<>();
+
+    public final MessageService messageService;
+
+    public MessageController(MessageService messageService) {
+        this.messageService = messageService;
+    }
 
     @GetMapping
     public List<Message> getMessages(){
-        return messages;
+        return messageService.getMessages();
+    }
+
+    @PostMapping
+    public Message saveMessage(@RequestBody Message message){
+        return messageService.saveMessage(message);
     }
 }

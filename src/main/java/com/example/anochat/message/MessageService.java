@@ -7,14 +7,18 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Service
 public class MessageService {
 
-    public final List<Message> messages = new CopyOnWriteArrayList<>();
+    private final MessageRepository messageRepository;
+
+    public MessageService(MessageRepository messageRepository) {
+        this.messageRepository = messageRepository;
+    }
 
     public List<Message> getMessages(){
-        return List.copyOf(messages);
+        return messageRepository.findAll();
     }
 
     public Message saveMessage(Message message){
-        messages.add(message);
+        messageRepository.save(message);
         return message;
     }
 }

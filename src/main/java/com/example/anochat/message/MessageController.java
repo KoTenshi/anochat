@@ -5,7 +5,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/messages")
-
 public class MessageController {
 
     public final MessageService messageService;

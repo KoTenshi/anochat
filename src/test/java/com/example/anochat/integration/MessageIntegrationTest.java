@@ -1,72 +1,47 @@
 package com.example.anochat.integration;
 
-import java.util.*;
+import com.example.anochat.DTO.CreateMessageRequest;
+import com.example.anochat.DTO.UserResponse;
+import com.example.anochat.message.MessageRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Import;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.MediaType;
-import org.springframework.web.client.RestClient;
+import org.springframework.test.web.servlet.client.RestTestClient;
+
+import java.util.UUID;
+
+import static com.example.anochat.integration.PostgresTestConfiguration.ADA;
+import static com.example.anochat.integration.PostgresTestConfiguration.LINUS;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "spring.jpa.hibernate.ddl-auto=create-drop"
-)
-
-@Import(PostgresTestConfiguration.class)
-class MessageIntegrationTest {
-
-    @LocalServerPort
-    int port;
+class MessageIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
-    com.example.anochat.message.MessageRepository messageRepository;
+    private MessageRepository messages;
 
+    // The list contains exactly the three posted messages, each attributed to the user who sent it.
     @Test
-    void returnsExactlyTheThreePostedMessages() {
-        messageRepository.deleteAll();
-        RestClient client = messagesClient();
+    void listsTheThreeMessagesWithTheirAuthenticatedSenders() {
+        messages.deleteAll();
+        var adaSession = newSession();
+        var linusSession = newSession();
+        var ada = login(adaSession, ADA);
+        var linus = login(linusSession, LINUS);
 
-        var messages = List.of(
-                new NewMessage("Ada", "Hallo zusammen!"),
-                new NewMessage("Linus", "Hallo Ada!"),
-                new NewMessage("Ada", "Bis später.")
-        );
-        var expected = new ArrayList<StoredMessage>();
+        var greeting = postMessage(adaSession, ada, "Hello everyone!");
+        var reply = postMessage(linusSession, linus, "Hi Ada!");
+        var farewell = postMessage(adaSession, ada, "See you later.");
 
-        for (var message : messages) {
-            var created = client.post()
-                    .uri("/api/messages")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(message)
-                    .retrieve()
-                    .body(StoredMessage.class);
-
-            assertThat(created).isNotNull();
-            assertThat(created.id()).isNotNull();
-            expected.add(new StoredMessage(created.id(), message.sender(), message.text()));
-        }
-
-        var actual = client.get()
-                .uri("/api/messages")
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<StoredMessage>>() {});
-
-        assertThat(actual).containsExactlyInAnyOrderElementsOf(expected);
+        var listed = okBody(adaSession.get().uri("/api/messages").exchange(), StoredMessage[].class);
+        assertThat(listed).containsExactlyInAnyOrder(greeting, reply, farewell);
     }
 
-    private RestClient messagesClient() {
-        return RestClient.builder()
-                .baseUrl("http://127.0.0.1:" + port)
-                .build();
+    private StoredMessage postMessage(RestTestClient session, UserResponse sender, String text) {
+        var message = okBody(post(session, "/api/messages", new CreateMessageRequest(text)), StoredMessage.class);
+        assertThat(message.id()).isNotNull();
+        assertThat(message.sender()).isEqualTo(sender);
+        assertThat(message.text()).isEqualTo(text);
+        return message;
     }
 
-
-    record NewMessage(String sender, String text) {}
-
-    record StoredMessage(UUID id, String sender, String text) {}
-
+    private record StoredMessage(UUID id, UserResponse sender, String text) {}
 }

@@ -1,64 +1,27 @@
-package com.example.anochat.integration;
+package com.exampile.anochat.integration;
 
-import java.util.*;
+import com.example.anochat.DTO.UserResponse;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Import;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.MediaType;
-import org.springframework.web.client.RestClient;
+
+import static com.example.anochat.integration.PostgresTestConfiguration.ADA;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "spring.jpa.hibernate.ddl-auto=create-drop"
-)
+class UserIntegrationTest extends IntegrationTestSupport {
 
-@Import(PostgresTestConfiguration.class)
-public class UserIntegrationTest {
-
-    @LocalServerPort
-    int port;
-
-    @Autowired
-    com.example.anochat.user.UserRepository userRepository;
-
+    // A profile lookup returns 401 before login and the registered ID and username after login.
     @Test
-    void returnCreatedUser(){
-        RestClient client = messagesClient();
+    void returnsTheCreatedUserById() {
+        var session = newSession();
+        var credentials = newUserCredentials();
+        var created = register(session, credentials);
 
-        var user = new NewUser("John Cena 29", "%sdfLDF89()234$kdsflsHD");
-
-        var created = client.post()
-                .uri("/api/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(user)
-                .retrieve()
-                .body(StoredUser.class);
-        assertThat(created).isNotNull();
         assertThat(created.id()).isNotNull();
+        assertThat(created.username()).isEqualTo(credentials.username());
+        session.get().uri("/api/users/{id}", created.id()).exchange().expectStatus().isUnauthorized();
 
-        var expected = new StoredUser(created.id(), user.username, user.passwordHash);
-
-        UUID userId = created.id();
-
-        var actual = client.get()
-                .uri("/api/users/{id}", userId)
-                .retrieve()
-                .body(StoredUser.class);
-
-        assertThat(actual).isEqualTo(expected);
-    }
-
-    record NewUser(String username, String passwordHash) {}
-
-    record StoredUser(UUID id, String username, String passwordHash) {}
-
-    private RestClient messagesClient() {
-        return RestClient.builder()
-                .baseUrl("http://127.0.0.1:" + port)
-                .build();
+        login(session, ADA);
+        session.get().uri("/api/users/{id}", created.id()).exchange()
+                .expectStatus().isOk()
+                .expectBody(UserResponse.class).isEqualTo(created);
     }
 }

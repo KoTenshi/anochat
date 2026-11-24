@@ -1,7 +1,7 @@
 package com.example.anochat.user;
 
-import com.example.anochat.user.DTO.CreateOrLoginUserRequest;
-import com.example.anochat.user.DTO.UserResponse;
+import com.example.anochat.DTO.CreateOrLoginUserRequest;
+import com.example.anochat.DTO.UserResponse;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 

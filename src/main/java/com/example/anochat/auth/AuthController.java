@@ -1,7 +1,7 @@
 package com.example.anochat.auth;
 
-import com.example.anochat.user.DTO.CreateOrLoginUserRequest;
-import com.example.anochat.user.DTO.UserResponse;
+import com.example.anochat.DTO.CreateOrLoginUserRequest;
+import com.example.anochat.DTO.UserResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;

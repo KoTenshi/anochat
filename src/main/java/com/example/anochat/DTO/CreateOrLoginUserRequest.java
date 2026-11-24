@@ -1,4 +1,4 @@
-package com.example.anochat.user.DTO;
+package com.example.anochat.DTO;
 
 public record CreateOrLoginUserRequest(String username, String password){
 }

@@ -1,6 +1,11 @@
 package com.example.anochat.message;
 
+import com.example.anochat.DTO.CreateMessageRequest;
+import com.example.anochat.user.UserRepository;
+import com.example.anochat.user.UserService;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -8,9 +13,11 @@ import java.util.List;
 public class MessageController {
 
     private final MessageService messageService;
+    private final UserRepository userRepository;
 
-    public MessageController(MessageService messageService) {
+    public MessageController(MessageService messageService, UserRepository userRepository) {
         this.messageService = messageService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -19,7 +26,9 @@ public class MessageController {
     }
 
     @PostMapping
-    public Message saveMessage(@RequestBody Message message){
-        return messageService.saveMessage(message);
+    public Message saveMessage(@RequestBody CreateMessageRequest createMessageRequest, Principal principal){
+        var sender = userRepository.findByUsername(principal.getName()).orElseThrow();
+
+        return messageService.saveMessage(new Message(sender, createMessageRequest.text()));
     }
 }

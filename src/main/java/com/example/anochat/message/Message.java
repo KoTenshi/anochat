@@ -1,5 +1,6 @@
 package com.example.anochat.message;
 
+import com.example.anochat.user.User;
 import jakarta.persistence.*;
 import java.util.UUID;
 
@@ -10,14 +11,15 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(updatable = false, nullable = false)
-    private String sender;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "sender_id", nullable = false, updatable = false)
+    private User sender;
 
     private String text;
 
     protected Message() {}
 
-    public Message(String sender, String text) {
+    public Message(User sender, String text) {
         this.sender = sender;
         this.text = text;
     }
@@ -25,13 +27,13 @@ public class Message {
     public UUID getId() {
         return id;
     }
-    public String getSender() {
+    public User getSender() {
         return sender;
     }
     public String getText() {
         return text;
     }
-    public void setSender(String sender) {
+    public void setSender(User sender) {
         this.sender = sender;
     }
     public void setText(String text) {

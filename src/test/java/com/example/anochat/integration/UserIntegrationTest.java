@@ -1,4 +1,4 @@
-package com.exampile.anochat.integration;
+package com.example.anochat.integration;
 
 import com.example.anochat.DTO.UserResponse;
 import org.junit.jupiter.api.Test;

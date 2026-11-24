@@ -7,7 +7,7 @@ import java.util.List;
 @RequestMapping("/api/messages")
 public class MessageController {
 
-    public final MessageService messageService;
+    private final MessageService messageService;
 
     public MessageController(MessageService messageService) {
         this.messageService = messageService;

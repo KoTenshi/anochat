@@ -1,5 +1,7 @@
 package com.example.anochat.user;
 
+import com.example.anochat.user.DTO.CreateOrLoginUserRequest;
+import com.example.anochat.user.DTO.UserResponse;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
@@ -7,15 +9,15 @@ import java.util.*;
 @RequestMapping("/api/users")
 public class UserController {
 
-    public final UserService userService;
+    private final UserService userService;
 
     public UserController(UserService userService){
         this.userService = userService;
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user){
-        return userService.createUser(user);
+    public UserResponse createUser(@RequestBody CreateOrLoginUserRequest request){
+        return userService.createUser(request);
     }
 
     @GetMapping("/{id}")
